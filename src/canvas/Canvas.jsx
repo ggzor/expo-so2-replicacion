@@ -2,6 +2,7 @@ import { ServerItem } from "./ServerItem"
 import { WireItem } from "./WireItem"
 import { ClientItem } from "./ClientItem"
 import { WeakWire } from "./WeakWire"
+import { Region } from "./Region"
 
 import * as React from "react"
 import { useEffect, useState } from "react"
@@ -75,6 +76,12 @@ export const Canvas = (props) => {
         <ServerItem
           key={`server: ${s.row},${s.column}`}
           {...{ ...s, size: cellSize, gap }}
+        />
+      ))}
+      {props.regions.map((r) => (
+        <Region
+          key={`region: ${r.start[0]},${r.start[1]} ${r.end[0]},${r.end[1]}`}
+          {...{ ...r, cellSize, gap }}
         />
       ))}
     </CanvasLayout>

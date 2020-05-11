@@ -61,6 +61,7 @@ const App = () => {
   }, [])
 
   const weakWires = [{ start: [0, 2], end: [2, 3], progress: 0.4 }]
+  const regions = [{ start: [2, 1], end: [2, 3], kind: "read" }]
 
   const width = 5
   const height = 4
@@ -69,7 +70,17 @@ const App = () => {
 
   return (
     <Canvas
-      {...{ width, height, cellSize, gap, wires, clients, servers, weakWires }}
+      {...{
+        width,
+        height,
+        cellSize,
+        gap,
+        clients,
+        wires,
+        servers,
+        weakWires,
+        regions,
+      }}
     />
   )
 }
