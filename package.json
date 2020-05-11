@@ -4,7 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "blend-promise-utils": "^1.25.0",
     "lodash-es": "^4.17.15",
+    "rambda": "^5.1.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-spring": "^8.0.27",
