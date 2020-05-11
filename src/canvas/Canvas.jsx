@@ -1,6 +1,7 @@
 import { ServerItem } from "./ServerItem"
 import { WireItem } from "./WireItem"
 import { ClientItem } from "./ClientItem"
+import { WeakWire } from "./WeakWire"
 
 import * as React from "react"
 import { useEffect, useState } from "react"
@@ -18,7 +19,20 @@ const CanvasLayout = styled.div`
 `
 
 export const Canvas = (props) => {
-  const { children, cellSize, gap } = props
+  const { cellSize, gap } = props
+
+  const [weakWires, setWeakWires] = useState(props.weakWires)
+  useEffect(() => setWeakWires(props.weakWires), [props.weakWires])
+  const weakWireItems = useTransition(
+    weakWires,
+    (w) => `weak: ${w.start[0]},${w.start[1]} ${w.end[0]},${w.end[1]}`,
+    {
+      from: { opacity: 0 },
+      enter: { opacity: 1 },
+      leave: { opacity: 0 },
+      config: { mass: 35, tension: 380, friction: 170 },
+    }
+  )
 
   const [wires, setWires] = useState(props.wires)
   useEffect(() => setWires(props.wires), [props.wires])
@@ -43,7 +57,9 @@ export const Canvas = (props) => {
 
   return (
     <CanvasLayout {...props}>
-      {children}
+      {weakWireItems.map(({ item, key, props }) => {
+        return <WeakWire key={key} {...{ ...item, ...props, cellSize, gap }} />
+      })}
       {wireItems.map(({ item, key, props }) => {
         return <WireItem key={key} {...{ ...item, ...props, cellSize, gap }} />
       })}

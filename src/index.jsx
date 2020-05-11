@@ -60,13 +60,17 @@ const App = () => {
     run()
   }, [])
 
+  const weakWires = [{ start: [0, 2], end: [2, 3], progress: 0.4 }]
+
   const width = 5
   const height = 4
   const cellSize = 64
   const gap = 32
 
   return (
-    <Canvas {...{ width, height, cellSize, gap, wires, clients, servers }} />
+    <Canvas
+      {...{ width, height, cellSize, gap, wires, clients, servers, weakWires }}
+    />
   )
 }
 
