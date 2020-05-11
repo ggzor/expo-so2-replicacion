@@ -1,5 +1,9 @@
 import * as React from "react"
 import { animated } from "react-spring"
+import {
+  normalizeGridCoordinates,
+  toRelativeGridCoordinate,
+} from "../gridUtils"
 
 const wireItemColorByState = {
   none: "#999999",
@@ -44,37 +48,8 @@ const WireItemBase = (props) => {
 
 export const WireItem = animated(WireItemBase)
 
-const getNormalizedCorners = ([y1, x1], [y2, x2]) => [
-  [Math.min(y1, y2), Math.max(y1, y2)],
-  [Math.min(x1, x2), Math.max(x1, x2)],
-]
-
-const normalizeGridCoordinates = (start, end) => {
-  const [[minY, maxY], [minX, maxX]] = getNormalizedCorners(start, end)
-
-  return [`${minY + 1}/${maxY + 2}`, `${minX + 1}/${maxX + 2}`]
-}
-
-const toGridCoordinate = ([y, x], cs, gap) => [
-  cs / 2 + y * (cs + gap),
-  cs / 2 + x * (cs + gap),
-]
-
-const pairWiseDiff = ([a, c], [b, d]) => [a - b, c - d]
-
-const computeCurve = ({ start, end, cellSize, gap }) => {
-  const [[minY], [minX]] = getNormalizedCorners(start, end)
-
-  const [sy, sx] = toGridCoordinate(
-    pairWiseDiff(start, [minY, minX]),
-    cellSize,
-    gap
-  )
-  const [ey, ex] = toGridCoordinate(
-    pairWiseDiff(end, [minY, minX]),
-    cellSize,
-    gap
-  )
+const computeCurve = (props) => {
+  const [[sy, sx], [ey, ex]] = toRelativeGridCoordinate(props)
 
   return `M ${sx} ${sy} C ${ex} ${sy + (ey - sy) * 0.618}, ${ex} ${
     sy + ((ey - sy) * 0.618 * 2) / 3
