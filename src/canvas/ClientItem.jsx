@@ -21,6 +21,7 @@ const ClientItemLayout = animated(styled.div`
 const clientItemColorForState = {
   ready: "#52B6E0",
   pending: "#E0E052",
+  failure: "#E05252",
 }
 
 export const ClientItem = (props) => {
