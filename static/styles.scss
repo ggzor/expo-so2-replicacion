@@ -21,6 +21,11 @@ body {
   grid-template-rows: auto 1fr;
   grid-template-columns: 1fr;
 
+  @media (max-width: 767px) and (orientation: landscape) {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+  }
+
   @media (min-width: 768px) {
     grid-template-rows: 1fr auto;
     grid-template-columns: 1fr;
@@ -29,6 +34,11 @@ body {
 
 main {
   height: 100%;
+
+  @media (max-width: 767px) and (orientation: landscape) {
+    grid-row: 1;
+    grid-column: 1;
+  }
 }
 
 .footer {
@@ -108,6 +118,12 @@ main {
 
   @media (min-width: 768px) {
     display: none;
+  }
+
+  @media (max-width: 767px) and (orientation: landscape) {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: flex-start;
   }
 
   display: flex;
