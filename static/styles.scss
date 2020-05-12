@@ -8,20 +8,16 @@
 html,
 body {
   margin: 0;
-  font-family: Roboto;
 }
 
 body {
-  height: 100vh;
-  width: 100vw;
+  font-family: Roboto;
 }
 
 .top {
-  width: 100%;
-  height: 100%;
+  height: 100vh;
 
   display: grid;
-
   grid-template-rows: auto 1fr;
   grid-template-columns: 1fr;
 
@@ -31,11 +27,21 @@ body {
   }
 }
 
+main {
+  height: 100%;
+}
+
 .footer {
   display: none;
   background-color: #1e1e1e;
   color: white;
   padding: 8px;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+  }
 
   .footer-central {
     justify-self: center;
@@ -49,12 +55,6 @@ body {
     font-weight: 300;
     font-size: 12px;
     margin: 4px;
-  }
-
-  @media (min-width: 768px) {
-    display: grid;
-    grid-template-rows: 1fr;
-    grid-template-columns: repeat(3, 1fr);
   }
 }
 
