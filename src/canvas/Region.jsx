@@ -24,7 +24,15 @@ export const Region = (props) => {
   return (
     <RegionBase
       kind={props.kind}
-      style={{ width, height, gridRow: row, gridColumn: column, zIndex: 200 }}
+      style={{
+        width,
+        height,
+        gridRow: row,
+        gridColumn: column,
+        zIndex: 200,
+        userSelect: "none",
+        pointerEvents: "none",
+      }}
     />
   )
 }

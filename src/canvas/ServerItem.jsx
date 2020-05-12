@@ -95,6 +95,8 @@ const TransactionCircleBase = animated(styled(Circle)`
   font-size: 10px;
   line-height: 11px;
   color: rgba(0, 0, 0, 0.5);
+
+  user-select: none;
 `)
 
 const TransactionCircle = ({ transaction, size }) => {

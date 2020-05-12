@@ -28,6 +28,8 @@ const DataCircleText = animated(styled.span`
   font-size: 14px;
   line-height: 14px;
   color: rgba(0, 0, 0, 0.7);
+
+  user-select: none;
 `)
 
 export const DataCircle = (props) => {
