@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import "regenerator-runtime/runtime"
 import { render } from "react-dom"
-import { range } from "lodash-es"
+import range from "lodash-es/range"
 import { delay } from "blend-promise-utils"
 import {
   lensPath,
