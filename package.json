@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "parcel build static/index.html"
+  },
   "dependencies": {
     "blend-promise-utils": "^1.25.0",
     "lodash-es": "^4.17.15",
