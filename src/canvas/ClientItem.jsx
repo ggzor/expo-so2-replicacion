@@ -55,9 +55,8 @@ export const ClientItem = (props) => {
             alignSelf: "end",
             transform: `translateY(${size / 6}px)`,
           }}
-        >
-          {data}
-        </DataCircle>
+          text={data}
+        />
       )}
     </ClientItemLayout>
   )

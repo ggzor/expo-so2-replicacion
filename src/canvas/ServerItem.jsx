@@ -55,9 +55,8 @@ export const ServerItem = ({
         }}
         color="white"
         size={size / 3}
-      >
-        {data}
-      </DataCircle>
+        text={data}
+      />
       {votes && (
         <VowRect style={{ gridColumn: 2, gridRow: 1, alignSelf: "start" }}>
           {votes}

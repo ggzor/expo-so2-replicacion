@@ -18,8 +18,8 @@ const App = () => {
     transaction: "none",
   }))
 
-  initialServers[0].transaction = "read"
   initialServers[3].transaction = "read"
+  initialServers[0].state = "down"
 
   const [servers, setServers] = useState(initialServers)
 
@@ -30,6 +30,7 @@ const App = () => {
 
   initialClients[0].action = "write"
   initialClients[0].data = "b"
+  initialClients[1].state = "pending"
 
   const initialWires = [
     ...range(5).map((column) => [
@@ -42,19 +43,16 @@ const App = () => {
     ],
   ].map(([start, end]) => ({ start, end, state: "success" }))
 
+  initialWires[0].state = "failure"
+  initialWires[5].state = "pending"
+
   const [wires, setWires] = useState(initialWires)
   const [clients, setClients] = useState(initialClients)
 
   useEffect(() => {
     async function run() {
       await delay(2000)
-      setClients([
-        ...clients,
-        { row: 3, column: 2, action: "write", state: "pending" },
-      ])
-
-      await delay(2000)
-      setClients(clients)
+      setClients(set(lensPath([0, "data"]), "c", clients))
     }
 
     run()
