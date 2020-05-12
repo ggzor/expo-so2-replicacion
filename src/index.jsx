@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react"
 import "regenerator-runtime/runtime"
 import { render } from "react-dom"
 import range from "lodash-es/range"
+import unzip from "lodash-es/unzip"
 import { delay } from "blend-promise-utils"
 import {
   lensPath,
+  intersperse,
   set,
   compose,
   difference,
@@ -19,6 +21,7 @@ import {
   slice,
   drop,
   take,
+  type,
 } from "rambda"
 import { animated, useTransition, config } from "react-spring"
 import styled from "styled-components"
@@ -26,6 +29,7 @@ import styled from "styled-components"
 import { Canvas } from "./canvas/Canvas"
 import { Drawer } from "./Drawer"
 import { MainLayout, CanvasLayout } from "./layout"
+import { create } from "lodash-es"
 
 const App = () => {
   const initialServers = range(5).map((column) => ({
@@ -57,8 +61,6 @@ const App = () => {
 
     const choosePositions = (props, count) => {}
 
-    console.log(choosePositions({ width, height, servers, clients }))
-
     function allocateClients(count) {}
 
     async function* stagger(count, stepDelay) {
@@ -76,6 +78,16 @@ const App = () => {
         state: "ready",
       }))
 
+    const createWriters = (writers) => {
+      const [coords, data] = unzip(writers)
+
+      return zip(createRegularClients(coords), data).map(([client, data]) => ({
+        ...client,
+        action: "write",
+        data,
+      }))
+    }
+
     const wireClients = (clients, wires) =>
       zip(clients, wires).flatMap(([start, targets]) =>
         targets.map((end) => ({ start, end, state: "none" }))
@@ -83,13 +95,29 @@ const App = () => {
 
     const delaySequence = async (spec) => {
       for (let [postDelay, action] of spec) {
+        // Not delayed action
+        if (action === undefined && typeof postDelay !== "number") {
+          action = postDelay
+          postDelay = undefined
+        }
+
+        // Call function and await if needed
         if (action) {
           let result = action()
           if (result && typeof result.then === "function") await result
         }
-        await delay(postDelay)
+
+        if (postDelay) await delay(postDelay)
       }
     }
+
+    const delayTraverse = (timeSeparator, items, action) =>
+      delaySequence(
+        intersperse(
+          [timeSeparator],
+          items.map((i) => [() => action(i)])
+        )
+      )
 
     const setterFor = (lens) => (state) => set(lens, state)
     const setterForProp = (prop) => setterFor(lensProp(prop))
@@ -97,184 +125,171 @@ const App = () => {
     const setItemState = setterForProp("state")
     const setItemAction = setterForProp("action")
     const setItemData = setterForProp("data")
-    const setItemTransaction = setterForProp("transaction")
+    const setTransaction = setterForProp("transaction")
 
     const modifyIndex = (index, op) => over(lensIndex(index), op)
     const modifyIndices = (indices, op) =>
       compose(...indices.map((i) => modifyIndex(i, op)))
 
-    async function run() {
-      await delay(2000)
-      let c1 = [
-        [0, 0],
-        [1, 3],
-        [3, 3],
-      ]
-      let w1 = [[[2, 0]], [[2, 3]], [[2, 3]]]
-
-      let clients1 = createRegularClients(c1)
-      for await (let i of stagger(3, 300)) setClients(clients1.slice(0, i + 1))
-      await delay(600)
-
-      setWires(wireClients(c1, w1))
-      await delay(800)
-
-      setWires(map(setItemState("success")))
-      await delay(1000)
-
-      setWires([])
-      await delay(1000)
-
-      setClients([])
-      await delay(1000)
-
-      setServers((servers) =>
-        compose(...[1, 4].map((i) => set(lensPath([i, "state"]), "down")))(
-          servers
-        )
-      )
-      await delay(1000)
-
-      let c2 = [[1, 1]]
-      setClients(createRegularClients(c2))
-      await delay(600)
-
-      let w2 = [
-        [
-          [2, 1],
-          [2, 2],
-        ],
-      ]
-      let wires2 = wireClients(c2, w2)
+    async function showRead() {
+      const [clients, wires] = unzip([
+        [[0, 0], [[2, 0]]],
+        [[1, 3], [[2, 3]]],
+        [[3, 3], [[2, 3]]],
+      ])
+      const items = createRegularClients(clients)
 
       await delaySequence([
-        [600, () => setWires(append(wires2[0]))],
+        [600, () => delayTraverse(300, items, compose(setClients, append))],
+        [800, () => setWires(wireClients(clients, wires))],
+        [1000, () => setWires(map(setItemState("success")))],
+        [1000, () => setWires([])],
+        [1000, () => setClients([])],
+      ])
+    }
+
+    async function showReadDown() {
+      let [clients, wires] = unzip([
+        [
+          [1, 1],
+          [
+            [2, 1],
+            [2, 2],
+          ],
+        ],
+      ])
+      let wireItems = wireClients(clients, wires)
+
+      await delaySequence([
+        [1000, () => setServers(modifyIndices([1, 4], setItemState("down")))],
+        [600, () => setClients(createRegularClients(clients))],
+
+        [600, () => setWires(append(wireItems[0]))],
         [400, () => setWires(modifyIndex(0, setItemState("failure")))],
-        [600, () => setWires(append(wires2[1]))],
+        [600, () => setWires(append(wireItems[1]))],
         [400, () => setWires(modifyIndex(1, setItemState("success")))],
         [1000],
+
         [1000, () => setWires([])],
+        [400, () => setClients([])],
+        [600, () => setServers(map(setItemState("ready")))],
+      ])
+    }
+
+    async function showWrite() {
+      let writers = [[[1, 2], "b"]]
+      let writerWires = wireClients(unzip(writers)[0], [
+        range(5).map((i) => [2, i]),
       ])
 
-      setClients([])
-      await delay(400)
+      let [readers, readerWires] = unzip([
+        [[3, 1], [[2, 1]]],
+        [[3, 3], [[2, 3]]],
+      ])
 
-      setServers(map(setItemState("ready")))
-      await delay(2000)
-
-      let c3 = [[1, 2]]
-      setClients(
-        map(
-          compose(setItemAction("write"), setItemData("b")),
-          createRegularClients(c3)
-        )
-      )
-      await delay(600)
-
-      let wires3 = wireClients(c3, [range(5).map(prepend(2))])
-      setWires(wires3)
-      await delay(800)
-
-      setWires(map(setItemState("success")))
-      setServers(map(setItemTransaction("write")))
-      await delay(1000)
-
-      let c4 = [
-        [3, 1],
-        [3, 3],
-      ]
-      let w4 = [[[2, 1]], [[2, 3]]]
-
-      setClients(concat(createRegularClients(c4)))
-      await delay(600)
-
-      setWires(concat(wireClients(c4, w4)))
-      await delay(800)
-      ;[setClients, setWires].map((f) =>
-        f(
-          compose(
-            ...range(c4.length).map((i) =>
-              modifyIndex(i, setItemState("pending"))
+      await delaySequence([
+        [600, () => setClients(createWriters(writers))],
+        [800, () => setWires(writerWires)],
+        [
+          1000,
+          () => {
+            setWires(map(setItemState("success")))
+            setServers(map(setTransaction("write")))
+          },
+        ],
+        [600, () => setClients(concat(createRegularClients(readers)))],
+        [800, () => setWires(concat(wireClients(readers, readerWires)))],
+        [
+          1000,
+          () => {
+            ;[setClients, setWires].map((f) =>
+              f(modifyIndices(range(readers.length), setItemState("pending")))
             )
-          )
-        )
-      )
-      await delay(1000)
+          },
+        ],
+        [800, () => setWires(drop(readerWires.length))],
+        [1000, () => setClients(drop(readers.length))],
+        [400, () => setServers(map(setItemData("b")))],
+        [
+          1000,
+          () => {
+            setServers(map(setTransaction("none")))
+            setWires([])
+          },
+        ],
+        [1000, () => setClients([])],
+      ])
+    }
 
-      setWires(drop(w4.length))
-      await delay(800)
+    async function showWriteFail() {
+      let clients = [[[1, 1], ["c"]]]
+      let wires = wireClients(unzip(clients)[0], [range(5).map(prepend(2))])
+      const active = [1, 2, 3]
 
-      setClients(drop(c4.length))
-      await delay(1000)
+      await delaySequence([
+        [
+          600,
+          () => {
+            setServers(modifyIndices([0, 4], setItemState("down")))
+            setClients(createWriters(clients))
+          },
+        ],
+        [800, () => setWires(wires)],
+        [
+          1000,
+          () => {
+            setWires(
+              compose(
+                modifyIndices([0, 4], setItemState("failure")),
+                map(setItemState("success"))
+              )
+            )
+            setServers(modifyIndices(active, setTransaction("write")))
+          },
+        ],
+        [1000, () => setClients(map(setItemState("failure")))],
+        [1000, () => setClients(map(setItemState("ready")))],
+        [500, () => setServers(modifyIndices(active, setItemData("c")))],
+        [
+          1000,
+          () => {
+            setWires(drop(1))
+            setServers(modifyIndex(0, setItemState("ready")))
+          },
+        ],
+        [1000, () => setClients(prepend(...createRegularClients([[3, 0]])))],
+        [
+          2500,
+          () => {
+            setWires(prepend(...wireClients([[3, 0]], [[[2, 0]]])))
+            setWires(modifyIndex(0, setItemState("success")))
+          },
+        ],
+        [300, () => setServers(map(setItemData("b")))],
+        [
+          1000,
+          () => {
+            setWires([])
+            setServers(map(setTransaction("none")))
+          },
+        ],
+        [1000, () => setClients(take(1))],
+        [
+          1000,
+          () => {
+            setClients([])
+            setServers(map(setItemState("ready")))
+          },
+        ],
+      ])
+    }
 
-      setServers(map(setItemData("b")))
-      await delay(400)
-
-      setServers(map(setItemTransaction("none")))
-      setWires([])
-      await delay(1000)
-
-      setClients([])
-      await delay(1000)
-
-      setServers(
-        compose(...[0, 4].map((i) => modifyIndex(i, setItemState("down"))))
-      )
-
-      let c5 = [[1, 1]]
-      setClients(
-        map(
-          compose(setItemAction("write"), setItemData("c")),
-          createRegularClients(c5)
-        )
-      )
-      await delay(600)
-
-      let wires4 = wireClients(c5, [range(5).map(prepend(2))])
-      setWires(wires4)
-      await delay(800)
-
-      setWires(
-        compose(
-          modifyIndices([0, 4], setItemState("failure")),
-          map(setItemState("success"))
-        )
-      )
-      setServers(modifyIndices([1, 2, 3], setItemTransaction("write")))
-      await delay(1000)
-
-      setClients(map(setItemState("failure")))
-      await delay(1000)
-
-      setClients(map(setItemState("ready")))
-      await delay(1000)
-
-      setServers(modifyIndices([1, 2, 3], setItemData("c")))
-      await delay(500)
-
-      setWires(drop(1))
-      setServers(modifyIndex(0, setItemState("ready")))
-      await delay(1000)
-
-      setClients(prepend(...createRegularClients([[3, 0]])))
-      await delay(1000)
-
-      setWires(prepend({ start: [3, 0], end: [2, 0], state: "success" }))
-      await delay(2500)
-
-      setServers(map(setItemData("b")))
-      await delay(300)
-
-      setWires([])
-      setServers(map(setItemTransaction("none")))
-      await delay(1000)
-
-      setClients(take(1))
-      await delay(1000)
-
-      setClients([])
-      setServers(map(setItemState("ready")))
-      await delay(1000)
+    async function run() {
+      await delay(2000)
+      await showRead()
+      await showReadDown()
+      await showWrite()
+      await showWriteFail()
     }
 
     run()
