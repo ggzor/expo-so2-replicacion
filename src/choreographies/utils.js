@@ -23,3 +23,15 @@ export const wireClients = (clients, wires) =>
   zip(clients, wires).flatMap(([start, targets]) =>
     targets.map((end) => ({ start, end, state: "none" }))
   )
+
+export const createReadRegions = (grids, { cellSize, gap }) =>
+  grids.map(([start, end]) => ({
+    start,
+    end,
+    cellSize,
+    gap,
+    kind: "read",
+  }))
+
+export const createWriteRegions = (grids, params) =>
+  createReadRegions(grids, params).map((obj) => ({ ...obj, kind: "write" }))

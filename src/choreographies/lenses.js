@@ -6,6 +6,7 @@ export const setterForProp = (prop) => setterFor(lensProp(prop))
 export const setItemState = setterForProp("state")
 export const setItemAction = setterForProp("action")
 export const setItemData = setterForProp("data")
+export const setVotes = setterForProp("votes")
 export const setTransaction = setterForProp("transaction")
 
 export const modifyIndex = (index, op) => over(lensIndex(index), op)
