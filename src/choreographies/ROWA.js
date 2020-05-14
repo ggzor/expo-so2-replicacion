@@ -12,8 +12,17 @@ import { createRegularClients, createWriters, wireClients } from "./utils"
 import range from "lodash-es/range"
 import unzip from "lodash-es/unzip"
 import { compose, map, append, prepend, concat, drop, take } from "rambda"
+import { delay } from "blend-promise-utils"
+
+export const ROWARequirements = {
+  servers: 5,
+  serversRow: 2,
+  width: 5,
+  height: 4,
+}
 
 export const ROWAChoreography = async (canvasProps) => {
+  await delay(2000)
   const steps = [showRead, showReadDown, showWrite, showWriteFail]
 
   for (let step of steps) await step(canvasProps)
@@ -79,7 +88,7 @@ async function showWrite({ setServers, setClients, setWires }) {
     [600, () => setClients(createWriters(writers))],
     [800, () => setWires(writerWires)],
     [
-      1000,
+      2000,
       () => {
         setWires(map(setItemState("success")))
         setServers(map(setTransaction("write")))
