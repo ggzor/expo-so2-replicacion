@@ -83,6 +83,7 @@ const VowRect = styled.div`
   line-height: 14px;
 
   color: #ffffff;
+  user-select: none;
 `
 
 const TransactionCircleBase = animated(styled(Circle)`
