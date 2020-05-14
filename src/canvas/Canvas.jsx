@@ -56,6 +56,18 @@ export const Canvas = (props) => {
     leave: { opacity: 0, transform: "scale(0.85, 0.85)" },
   })
 
+  const [regions, setRegions] = useState(props.regions)
+  useEffect(() => setRegions(props.regions), [props.regions])
+  const regionItems = useTransition(
+    regions,
+    (r) => `region: ${r.start[0]},${r.start[1]} ${r.end[0]},${r.end[1]}`,
+    {
+      from: { opacity: 0.7, transform: "scale(0.90, 0.90)" },
+      enter: { opacity: 1, transform: "scale(1, 1)" },
+      leave: { opacity: 0, transform: "scale(0.90, 0.90)" },
+    }
+  )
+
   return (
     <CanvasLayout {...props}>
       {weakWireItems.map(({ item, key, props }) => {
@@ -78,12 +90,9 @@ export const Canvas = (props) => {
           {...{ ...s, size: cellSize, gap }}
         />
       ))}
-      {props.regions.map((r) => (
-        <Region
-          key={`region: ${r.start[0]},${r.start[1]} ${r.end[0]},${r.end[1]}`}
-          {...{ ...r, cellSize, gap }}
-        />
-      ))}
+      {regionItems.map(({ item, key, props }) => {
+        return <Region key={key} {...{ ...item, ...props, cellSize, gap }} />
+      })}
     </CanvasLayout>
   )
 }

@@ -1,13 +1,14 @@
 import * as React from "react"
 import styled from "styled-components"
+import { animated } from "react-spring"
 import { normalizeGridCoordinates, getNormalizedCorners } from "../gridUtils"
 
-const RegionBase = styled.div`
+const RegionBase = animated(styled.div`
   border: dashed 2px;
   border-color: ${({ kind }) => (kind === "read" ? "#52E099" : "#52B6E0")};
   align-self: center;
   justify-self: center;
-`
+`)
 
 export const Region = (props) => {
   const { start, end, cellSize, gap } = props
@@ -25,6 +26,7 @@ export const Region = (props) => {
     <RegionBase
       kind={props.kind}
       style={{
+        ...props,
         width,
         height,
         gridRow: row,
