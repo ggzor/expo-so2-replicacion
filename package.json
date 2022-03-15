@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "blend-promise-utils": "^1.25.0",
-    "lodash-es": "^4.17.15",
+    "lodash-es": "^4.17.21",
     "rambda": "^5.1.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
